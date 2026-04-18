@@ -1,19 +1,14 @@
-FROM golang:1.22-alpine
+FROM alpine:latest
 
 WORKDIR /app
 
-# نسخ المشروع
-COPY . .
+RUN apk add --no-cache ca-certificates wget unzip
 
-# بناء PocketBase
-RUN go build -tags netgo -ldflags "-s -w" -o app
+# Download PocketBase (change version if needed)
+RUN wget https://github.com/pocketbase/pocketbase/releases/download/v0.22.8/pocketbase_0.22.8_linux_amd64.zip \
+    && unzip pocketbase_0.22.8_linux_amd64.zip \
+    && chmod +x pocketbase
 
-# جعل الملف قابل للتنفيذ
-RUN chmod +x app
+EXPOSE 8090
 
-# إنشاء مجلد البيانات
-RUN mkdir -p /pb_data
-
-EXPOSE 8080
-
-CMD ["./app", "serve", "--http=0.0.0.0:8080", "--dir=/pb_data"]
+CMD ["./pocketbase", "serve", "--http=0.0.0.0:8090"]
